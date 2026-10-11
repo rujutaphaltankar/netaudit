@@ -1,0 +1,19 @@
+# SAMPLE DATA - synthetic configuration for development and demonstration only.
+# Intentionally weak. Not taken from a real device. All secrets are fake.
+set version 20.4R3.8
+set system host-name EDGE-FW-01
+set system root-authentication encrypted-password "$1$abcd1234$FAKEFAKEFAKEFAKEFAKE00"
+set system login user admin uid 2000
+set system login user admin class super-user
+set system login user admin authentication encrypted-password "$1$zzzz9999$FAKEFAKEFAKEFAKEFAKE11"
+set system services ssh protocol-version v1
+set system services ssh root-login allow
+set system services telnet
+set system services web-management http port 80
+set system services xnm-clear-text
+set system ntp server 203.0.113.10
+set system syslog file messages any notice
+set snmp community public authorization read-only
+set snmp location "Pune DC1"
+set interfaces lo0 unit 0 family inet address 10.255.255.1/32
+set interfaces ge-0/0/0 unit 0 family inet address 10.10.10.1/24
