@@ -1,0 +1,860 @@
+{
+ "catalog_version": "1.0.0",
+ "disclaimer": "Rules are inspired by selected controls from NIST SP 800-53 Rev. 5, ISO/IEC 27001:2022 Annex A and CIS Controls v8. The mapping is an interpretation by the project authors; passing these rules does NOT demonstrate compliance with any framework.",
+ "rules": [
+  {
+   "id": "NA-MGMT-001",
+   "title": "Telnet management is disabled",
+   "category": "Management Access",
+   "severity": "high",
+   "description": "Telnet transmits credentials and session data in clear text and can be sniffed or hijacked on the network path.",
+   "applies_when": [],
+   "fail_when": [],
+   "check": {
+    "path": "management.telnet_enabled",
+    "op": "is_false"
+   },
+   "pass_message": "Telnet is disabled.",
+   "fail_message": "Telnet is enabled for management access.",
+   "remediation": {
+    "generic": "Disable Telnet and use SSH only.",
+    "cisco_ios": "line vty 0 15\n transport input ssh",
+    "juniper_junos": "delete system services telnet"
+   },
+   "references": [
+    {
+     "framework": "NIST SP 800-53 Rev. 5",
+     "control": "AC-17(2)",
+     "title": "Remote Access: Protection of Confidentiality and Integrity Using Encryption"
+    },
+    {
+     "framework": "NIST SP 800-53 Rev. 5",
+     "control": "SC-8",
+     "title": "Transmission Confidentiality and Integrity"
+    },
+    {
+     "framework": "CIS Controls v8",
+     "control": "4.8",
+     "title": "Uninstall or Disable Unnecessary Services on Enterprise Assets and Software"
+    },
+    {
+     "framework": "CIS Controls v8",
+     "control": "12.6",
+     "title": "Use of Secure Network Management and Communication Protocols"
+    },
+    {
+     "framework": "ISO/IEC 27001:2022 Annex A",
+     "control": "A.8.20",
+     "title": "Networks security"
+    }
+   ]
+  },
+  {
+   "id": "NA-MGMT-002",
+   "title": "Unencrypted HTTP management is disabled",
+   "category": "Management Access",
+   "severity": "medium",
+   "description": "The HTTP management interface exposes credentials and configuration actions without encryption.",
+   "applies_when": [],
+   "fail_when": [],
+   "check": {
+    "path": "management.http_enabled",
+    "op": "is_false"
+   },
+   "pass_message": "HTTP management is disabled.",
+   "fail_message": "HTTP (unencrypted) management is enabled.",
+   "remediation": {
+    "generic": "Disable HTTP management; use HTTPS or CLI over SSH.",
+    "cisco_ios": "no ip http server\nip http secure-server",
+    "juniper_junos": "delete system services web-management http\nset system services web-management https system-generated-certificate"
+   },
+   "references": [
+    {
+     "framework": "NIST SP 800-53 Rev. 5",
+     "control": "SC-8",
+     "title": "Transmission Confidentiality and Integrity"
+    },
+    {
+     "framework": "NIST SP 800-53 Rev. 5",
+     "control": "CM-7",
+     "title": "Least Functionality"
+    },
+    {
+     "framework": "CIS Controls v8",
+     "control": "4.8",
+     "title": "Uninstall or Disable Unnecessary Services on Enterprise Assets and Software"
+    },
+    {
+     "framework": "CIS Controls v8",
+     "control": "12.6",
+     "title": "Use of Secure Network Management and Communication Protocols"
+    },
+    {
+     "framework": "ISO/IEC 27001:2022 Annex A",
+     "control": "A.8.20",
+     "title": "Networks security"
+    }
+   ]
+  },
+  {
+   "id": "NA-MGMT-003",
+   "title": "SSH is enabled for secure remote administration",
+   "category": "Management Access",
+   "severity": "medium",
+   "description": "Remote administration should use an encrypted protocol; SSH is the standard for network devices.",
+   "applies_when": [],
+   "fail_when": [],
+   "check": {
+    "path": "management.ssh_enabled",
+    "op": "is_true"
+   },
+   "pass_message": "SSH is enabled.",
+   "fail_message": "SSH is not enabled, leaving no secure remote management channel.",
+   "remediation": {
+    "generic": "Enable SSH version 2.",
+    "cisco_ios": "ip domain-name example.local\ncrypto key generate rsa modulus 2048\nip ssh version 2",
+    "juniper_junos": "set system services ssh protocol-version v2"
+   },
+   "references": [
+    {
+     "framework": "NIST SP 800-53 Rev. 5",
+     "control": "AC-17",
+     "title": "Remote Access"
+    },
+    {
+     "framework": "NIST SP 800-53 Rev. 5",
+     "control": "AC-17(2)",
+     "title": "Remote Access: Protection of Confidentiality and Integrity Using Encryption"
+    },
+    {
+     "framework": "CIS Controls v8",
+     "control": "12.6",
+     "title": "Use of Secure Network Management and Communication Protocols"
+    },
+    {
+     "framework": "ISO/IEC 27001:2022 Annex A",
+     "control": "A.8.24",
+     "title": "Use of cryptography"
+    }
+   ]
+  },
+  {
+   "id": "NA-MGMT-004",
+   "title": "Only SSH version 2 is permitted",
+   "category": "Management Access",
+   "severity": "high",
+   "description": "SSH protocol version 1 has known cryptographic weaknesses (e.g., session hijacking and insertion attacks).",
+   "applies_when": [
+    {
+     "path": "management.ssh_enabled",
+     "op": "is_true",
+     "message": "SSH is not enabled, so SSH settings do not apply."
+    }
+   ],
+   "fail_when": [],
+   "check": {
+    "path": "management.ssh_version",
+    "op": "equals",
+    "arg": "2"
+   },
+   "pass_message": "Only SSH version 2 is permitted.",
+   "fail_message": "SSH version 1 is permitted or SSH is not restricted to version 2.",
+   "remediation": {
+    "generic": "Restrict SSH to version 2.",
+    "cisco_ios": "ip ssh version 2",
+    "juniper_junos": "set system services ssh protocol-version v2"
+   },
+   "references": [
+    {
+     "framework": "NIST SP 800-53 Rev. 5",
+     "control": "SC-13",
+     "title": "Cryptographic Protection"
+    },
+    {
+     "framework": "NIST SP 800-53 Rev. 5",
+     "control": "AC-17(2)",
+     "title": "Remote Access: Protection of Confidentiality and Integrity Using Encryption"
+    },
+    {
+     "framework": "CIS Controls v8",
+     "control": "12.6",
+     "title": "Use of Secure Network Management and Communication Protocols"
+    },
+    {
+     "framework": "ISO/IEC 27001:2022 Annex A",
+     "control": "A.8.24",
+     "title": "Use of cryptography"
+    }
+   ]
+  },
+  {
+   "id": "NA-MGMT-005",
+   "title": "Management access is restricted by an ACL / filter",
+   "category": "Management Access",
+   "severity": "medium",
+   "description": "Limiting which source addresses may reach the management plane reduces exposure to brute-force and exploit attempts.",
+   "applies_when": [],
+   "fail_when": [],
+   "check": {
+    "path": "management.admin_acls",
+    "op": "non_empty"
+   },
+   "pass_message": "A management ACL/filter is applied.",
+   "fail_message": "No ACL or filter restricts management (VTY / loopback) access.",
+   "remediation": {
+    "generic": "Apply an ACL/filter that permits only management networks.",
+    "cisco_ios": "ip access-list standard MGMT-ACL\n permit <mgmt-subnet> <wildcard>\nline vty 0 15\n access-class MGMT-ACL in",
+    "juniper_junos": "set firewall filter PROTECT-RE term ALLOW-MGMT from source-address <mgmt-subnet>\nset firewall filter PROTECT-RE term ALLOW-MGMT then accept\nset firewall filter PROTECT-RE term DENY then discard\nset interfaces lo0 unit 0 family inet filter input PROTECT-RE"
+   },
+   "references": [
+    {
+     "framework": "NIST SP 800-53 Rev. 5",
+     "control": "AC-3",
+     "title": "Access Enforcement"
+    },
+    {
+     "framework": "NIST SP 800-53 Rev. 5",
+     "control": "SC-7",
+     "title": "Boundary Protection"
+    },
+    {
+     "framework": "CIS Controls v8",
+     "control": "12.6",
+     "title": "Use of Secure Network Management and Communication Protocols"
+    },
+    {
+     "framework": "ISO/IEC 27001:2022 Annex A",
+     "control": "A.5.15",
+     "title": "Access control"
+    },
+    {
+     "framework": "ISO/IEC 27001:2022 Annex A",
+     "control": "A.8.20",
+     "title": "Networks security"
+    }
+   ]
+  },
+  {
+   "id": "NA-MGMT-006",
+   "title": "Idle session timeout is configured (15 minutes or less)",
+   "category": "Management Access",
+   "severity": "medium",
+   "description": "Unattended administrative sessions can be taken over; a timeout of 0 means sessions never expire.",
+   "applies_when": [],
+   "fail_when": [],
+   "check": {
+    "path": "management.session_timeout_minutes",
+    "op": "in_range",
+    "arg": {
+     "gt": 0,
+     "lte": 15
+    }
+   },
+   "pass_message": "Idle timeout is set to 15 minutes or less.",
+   "fail_message": "Idle session timeout is disabled (0) or longer than 15 minutes.",
+   "remediation": {
+    "generic": "Set an idle timeout of 15 minutes or less.",
+    "cisco_ios": "line con 0\n exec-timeout 10 0\nline vty 0 15\n exec-timeout 10 0",
+    "juniper_junos": "set system login class <class> idle-timeout 10"
+   },
+   "references": [
+    {
+     "framework": "NIST SP 800-53 Rev. 5",
+     "control": "AC-12",
+     "title": "Session Termination"
+    },
+    {
+     "framework": "CIS Controls v8",
+     "control": "4.3",
+     "title": "Configure Automatic Session Locking on Enterprise Assets"
+    },
+    {
+     "framework": "ISO/IEC 27001:2022 Annex A",
+     "control": "A.8.5",
+     "title": "Secure authentication"
+    }
+   ]
+  },
+  {
+   "id": "NA-AUTH-001",
+   "title": "AAA (centralized authentication framework) is enabled",
+   "category": "Authentication",
+   "severity": "high",
+   "description": "AAA enables consistent authentication, authorization and accounting instead of device-local, line-level passwords.",
+   "applies_when": [],
+   "fail_when": [],
+   "check": {
+    "path": "authentication.aaa_enabled",
+    "op": "is_true"
+   },
+   "pass_message": "AAA is enabled.",
+   "fail_message": "AAA is not enabled.",
+   "remediation": {
+    "generic": "Enable AAA and define authentication methods.",
+    "cisco_ios": "aaa new-model\naaa authentication login default group tacacs+ local",
+    "juniper_junos": "set system authentication-order [ tacplus password ]\nset system tacplus-server <ip> secret <key>"
+   },
+   "references": [
+    {
+     "framework": "NIST SP 800-53 Rev. 5",
+     "control": "IA-2",
+     "title": "Identification and Authentication (Organizational Users)"
+    },
+    {
+     "framework": "CIS Controls v8",
+     "control": "6.7",
+     "title": "Centralize Access Control"
+    },
+    {
+     "framework": "ISO/IEC 27001:2022 Annex A",
+     "control": "A.8.5",
+     "title": "Secure authentication"
+    }
+   ]
+  },
+  {
+   "id": "NA-AUTH-002",
+   "title": "Centralized authentication (RADIUS/TACACS+) is used",
+   "category": "Authentication",
+   "severity": "medium",
+   "description": "Centralized servers allow instant revocation, strong policy and central accounting of administrator access.",
+   "applies_when": [],
+   "fail_when": [
+    {
+     "path": "authentication.aaa_enabled",
+     "op": "is_false",
+     "message": "AAA is disabled, so centralized authentication cannot be in use."
+    }
+   ],
+   "check": {
+    "path": "authentication.methods",
+    "op": "includes_any",
+    "arg": [
+     "radius",
+     "tacacs+",
+     "group:*"
+    ]
+   },
+   "pass_message": "A centralized authentication method is configured.",
+   "fail_message": "No RADIUS or TACACS+ method is configured for login.",
+   "remediation": {
+    "generic": "Use TACACS+ or RADIUS with local fallback.",
+    "cisco_ios": "tacacs server TAC1\n address ipv4 <ip>\n key <key>\naaa authentication login default group tacacs+ local",
+    "juniper_junos": "set system authentication-order [ tacplus password ]\nset system tacplus-server <ip> secret <key>"
+   },
+   "references": [
+    {
+     "framework": "NIST SP 800-53 Rev. 5",
+     "control": "IA-2",
+     "title": "Identification and Authentication (Organizational Users)"
+    },
+    {
+     "framework": "CIS Controls v8",
+     "control": "6.7",
+     "title": "Centralize Access Control"
+    },
+    {
+     "framework": "ISO/IEC 27001:2022 Annex A",
+     "control": "A.8.5",
+     "title": "Secure authentication"
+    }
+   ]
+  },
+  {
+   "id": "NA-AUTH-003",
+   "title": "No 'none' (no-authentication) login method",
+   "category": "Authentication",
+   "severity": "critical",
+   "description": "A 'none' method lets anyone log in without credentials if the other methods are unreachable.",
+   "applies_when": [
+    {
+     "path": "authentication.aaa_enabled",
+     "op": "is_true",
+     "message": "AAA is not enabled, so method lists do not apply."
+    }
+   ],
+   "fail_when": [],
+   "check": {
+    "path": "authentication.methods",
+    "op": "excludes_all",
+    "arg": [
+     "none"
+    ]
+   },
+   "pass_message": "No unauthenticated login method is configured.",
+   "fail_message": "A 'none' login method allows access without authentication.",
+   "remediation": {
+    "generic": "Remove 'none' from authentication method lists.",
+    "cisco_ios": "aaa authentication login default group tacacs+ local"
+   },
+   "references": [
+    {
+     "framework": "NIST SP 800-53 Rev. 5",
+     "control": "IA-2",
+     "title": "Identification and Authentication (Organizational Users)"
+    },
+    {
+     "framework": "NIST SP 800-53 Rev. 5",
+     "control": "IA-5",
+     "title": "Authenticator Management"
+    },
+    {
+     "framework": "ISO/IEC 27001:2022 Annex A",
+     "control": "A.8.5",
+     "title": "Secure authentication"
+    }
+   ]
+  },
+  {
+   "id": "NA-AUTH-004",
+   "title": "Password encryption service is enabled",
+   "category": "Authentication",
+   "severity": "low",
+   "description": "Without 'service password-encryption', line and legacy passwords appear in clear text in the configuration.",
+   "vendors": [
+    "cisco_ios"
+   ],
+   "applies_when": [],
+   "fail_when": [],
+   "check": {
+    "path": "authentication.password_encryption_service",
+    "op": "is_true"
+   },
+   "pass_message": "Password encryption service is enabled.",
+   "fail_message": "Password encryption service is disabled.",
+   "remediation": {
+    "generic": "Enable password encryption (and prefer secret-based credentials).",
+    "cisco_ios": "service password-encryption"
+   },
+   "references": [
+    {
+     "framework": "NIST SP 800-53 Rev. 5",
+     "control": "IA-5",
+     "title": "Authenticator Management"
+    },
+    {
+     "framework": "NIST SP 800-53 Rev. 5",
+     "control": "CM-6",
+     "title": "Configuration Settings"
+    },
+    {
+     "framework": "ISO/IEC 27001:2022 Annex A",
+     "control": "A.8.5",
+     "title": "Secure authentication"
+    }
+   ]
+  },
+  {
+   "id": "NA-AUTH-005",
+   "title": "Privileged credential uses strong storage",
+   "category": "Authentication",
+   "severity": "high",
+   "description": "Cleartext, reversible (Cisco type 7 / Junos $9$), MD5 or unsalted hashes can be recovered or cracked quickly.",
+   "applies_when": [],
+   "fail_when": [],
+   "check": {
+    "path": "authentication.privileged_credential_storage",
+    "op": "not_in",
+    "arg": "$WEAK_CREDENTIAL_STORAGE"
+   },
+   "pass_message": "The privileged credential uses a strong hash.",
+   "fail_message": "The privileged credential is stored with a weak or reversible method.",
+   "remediation": {
+    "generic": "Store the privileged credential with a strong, salted hash.",
+    "cisco_ios": "enable algorithm-type scrypt secret <password>",
+    "juniper_junos": "set system root-authentication plain-text-password"
+   },
+   "references": [
+    {
+     "framework": "NIST SP 800-53 Rev. 5",
+     "control": "IA-5",
+     "title": "Authenticator Management"
+    },
+    {
+     "framework": "NIST SP 800-53 Rev. 5",
+     "control": "SC-13",
+     "title": "Cryptographic Protection"
+    },
+    {
+     "framework": "CIS Controls v8",
+     "control": "5.2",
+     "title": "Use Unique Passwords"
+    },
+    {
+     "framework": "ISO/IEC 27001:2022 Annex A",
+     "control": "A.8.2",
+     "title": "Privileged access rights"
+    },
+    {
+     "framework": "ISO/IEC 27001:2022 Annex A",
+     "control": "A.8.24",
+     "title": "Use of cryptography"
+    }
+   ]
+  },
+  {
+   "id": "NA-AUTH-006",
+   "title": "Local user credentials use strong storage",
+   "category": "Authentication",
+   "severity": "high",
+   "description": "Weakly stored local accounts can be recovered from a configuration backup or screenshot.",
+   "applies_when": [
+    {
+     "path": "authentication.local_user_credential_storage",
+     "op": "non_empty",
+     "message": "No local users are configured."
+    }
+   ],
+   "fail_when": [],
+   "check": {
+    "path": "authentication.local_user_credential_storage",
+    "op": "excludes_all",
+    "arg": "$WEAK_CREDENTIAL_STORAGE"
+   },
+   "pass_message": "All local users use strong credential storage.",
+   "fail_message": "One or more local users have weakly stored credentials.",
+   "remediation": {
+    "generic": "Re-create local users with strongly hashed secrets.",
+    "cisco_ios": "username <name> privilege <lvl> algorithm-type scrypt secret <password>",
+    "juniper_junos": "set system login user <name> authentication plain-text-password"
+   },
+   "references": [
+    {
+     "framework": "NIST SP 800-53 Rev. 5",
+     "control": "IA-5",
+     "title": "Authenticator Management"
+    },
+    {
+     "framework": "NIST SP 800-53 Rev. 5",
+     "control": "SC-13",
+     "title": "Cryptographic Protection"
+    },
+    {
+     "framework": "CIS Controls v8",
+     "control": "5.2",
+     "title": "Use Unique Passwords"
+    },
+    {
+     "framework": "ISO/IEC 27001:2022 Annex A",
+     "control": "A.8.5",
+     "title": "Secure authentication"
+    },
+    {
+     "framework": "ISO/IEC 27001:2022 Annex A",
+     "control": "A.8.24",
+     "title": "Use of cryptography"
+    }
+   ]
+  },
+  {
+   "id": "NA-LOG-001",
+   "title": "Logs are sent to a remote syslog server",
+   "category": "Logging & Time",
+   "severity": "medium",
+   "description": "Remote logging preserves evidence if the device is compromised or reloaded, and enables central monitoring.",
+   "applies_when": [],
+   "fail_when": [],
+   "check": {
+    "path": "logging.remote_hosts",
+    "op": "non_empty"
+   },
+   "pass_message": "A remote logging host is configured.",
+   "fail_message": "No remote logging host is configured.",
+   "remediation": {
+    "generic": "Send logs to a central syslog server.",
+    "cisco_ios": "logging host <ip>\nlogging trap informational",
+    "juniper_junos": "set system syslog host <ip> any notice"
+   },
+   "references": [
+    {
+     "framework": "NIST SP 800-53 Rev. 5",
+     "control": "AU-2",
+     "title": "Event Logging"
+    },
+    {
+     "framework": "NIST SP 800-53 Rev. 5",
+     "control": "AU-9",
+     "title": "Protection of Audit Information"
+    },
+    {
+     "framework": "CIS Controls v8",
+     "control": "8.2",
+     "title": "Collect Audit Logs"
+    },
+    {
+     "framework": "ISO/IEC 27001:2022 Annex A",
+     "control": "A.8.15",
+     "title": "Logging"
+    }
+   ]
+  },
+  {
+   "id": "NA-NTP-001",
+   "title": "Time is synchronized with an NTP server",
+   "category": "Logging & Time",
+   "severity": "medium",
+   "description": "Accurate time is required to correlate logs across devices and to validate certificates.",
+   "applies_when": [],
+   "fail_when": [],
+   "check": {
+    "path": "ntp.servers",
+    "op": "non_empty"
+   },
+   "pass_message": "At least one NTP server is configured.",
+   "fail_message": "No NTP server is configured.",
+   "remediation": {
+    "generic": "Configure an NTP server.",
+    "cisco_ios": "ntp server <ip>",
+    "juniper_junos": "set system ntp server <ip>"
+   },
+   "references": [
+    {
+     "framework": "NIST SP 800-53 Rev. 5",
+     "control": "AU-8",
+     "title": "Time Stamps"
+    },
+    {
+     "framework": "CIS Controls v8",
+     "control": "8.4",
+     "title": "Standardize Time Synchronization"
+    },
+    {
+     "framework": "ISO/IEC 27001:2022 Annex A",
+     "control": "A.8.17",
+     "title": "Clock synchronization"
+    }
+   ]
+  },
+  {
+   "id": "NA-NTP-002",
+   "title": "At least two NTP servers are configured",
+   "category": "Logging & Time",
+   "severity": "low",
+   "description": "A single time source is a single point of failure and cannot be cross-checked.",
+   "applies_when": [
+    {
+     "path": "ntp.servers",
+     "op": "non_empty",
+     "message": "No NTP server is configured (see NA-NTP-001)."
+    }
+   ],
+   "fail_when": [],
+   "check": {
+    "path": "ntp.servers",
+    "op": "min_length",
+    "arg": 2
+   },
+   "pass_message": "Two or more NTP servers are configured.",
+   "fail_message": "Only one NTP server is configured.",
+   "remediation": {
+    "generic": "Add a second NTP server.",
+    "cisco_ios": "ntp server <second-ip>",
+    "juniper_junos": "set system ntp server <second-ip>"
+   },
+   "references": [
+    {
+     "framework": "NIST SP 800-53 Rev. 5",
+     "control": "AU-8",
+     "title": "Time Stamps"
+    },
+    {
+     "framework": "CIS Controls v8",
+     "control": "8.4",
+     "title": "Standardize Time Synchronization"
+    },
+    {
+     "framework": "ISO/IEC 27001:2022 Annex A",
+     "control": "A.8.17",
+     "title": "Clock synchronization"
+    }
+   ]
+  },
+  {
+   "id": "NA-NTP-003",
+   "title": "NTP authentication is enabled",
+   "category": "Logging & Time",
+   "severity": "medium",
+   "description": "Unauthenticated NTP can be spoofed to shift time and undermine log integrity.",
+   "applies_when": [
+    {
+     "path": "ntp.servers",
+     "op": "non_empty",
+     "message": "No NTP server is configured (see NA-NTP-001)."
+    }
+   ],
+   "fail_when": [],
+   "check": {
+    "path": "ntp.authentication_enabled",
+    "op": "is_true"
+   },
+   "pass_message": "NTP authentication is enabled.",
+   "fail_message": "NTP authentication is not enabled.",
+   "remediation": {
+    "generic": "Enable NTP authentication with a trusted key.",
+    "cisco_ios": "ntp authenticate\nntp authentication-key 1 md5 <key>\nntp trusted-key 1\nntp server <ip> key 1",
+    "juniper_junos": "set system ntp authentication-key 1 type md5 value <key>\nset system ntp trusted-key 1\nset system ntp server <ip> key 1"
+   },
+   "references": [
+    {
+     "framework": "NIST SP 800-53 Rev. 5",
+     "control": "AU-8",
+     "title": "Time Stamps"
+    },
+    {
+     "framework": "NIST SP 800-53 Rev. 5",
+     "control": "SC-8",
+     "title": "Transmission Confidentiality and Integrity"
+    },
+    {
+     "framework": "CIS Controls v8",
+     "control": "8.4",
+     "title": "Standardize Time Synchronization"
+    },
+    {
+     "framework": "ISO/IEC 27001:2022 Annex A",
+     "control": "A.8.17",
+     "title": "Clock synchronization"
+    }
+   ]
+  },
+  {
+   "id": "NA-SNMP-001",
+   "title": "SNMPv1/v2c community strings are not used",
+   "category": "SNMP",
+   "severity": "high",
+   "description": "SNMPv1/v2c send community strings in clear text and provide no per-user authentication or encryption.",
+   "applies_when": [],
+   "fail_when": [],
+   "check": {
+    "path": "snmp.versions",
+    "op": "excludes_all",
+    "arg": [
+     "v1/v2c"
+    ]
+   },
+   "pass_message": "No SNMPv1/v2c community strings are configured.",
+   "fail_message": "SNMPv1/v2c community strings are configured.",
+   "remediation": {
+    "generic": "Remove v1/v2c communities and use SNMPv3 authPriv.",
+    "cisco_ios": "no snmp-server community <string>\nsnmp-server group <grp> v3 priv\nsnmp-server user <user> <grp> v3 auth sha <auth-pass> priv aes 128 <priv-pass>",
+    "juniper_junos": "delete snmp community <name>\nset snmp v3 usm local-engine user <user> authentication-sha authentication-password <pass>\nset snmp v3 usm local-engine user <user> privacy-aes128 privacy-password <pass>"
+   },
+   "references": [
+    {
+     "framework": "NIST SP 800-53 Rev. 5",
+     "control": "AC-17(2)",
+     "title": "Remote Access: Protection of Confidentiality and Integrity Using Encryption"
+    },
+    {
+     "framework": "NIST SP 800-53 Rev. 5",
+     "control": "SC-8",
+     "title": "Transmission Confidentiality and Integrity"
+    },
+    {
+     "framework": "CIS Controls v8",
+     "control": "4.8",
+     "title": "Uninstall or Disable Unnecessary Services on Enterprise Assets and Software"
+    },
+    {
+     "framework": "CIS Controls v8",
+     "control": "3.10",
+     "title": "Encrypt Sensitive Data in Transit"
+    },
+    {
+     "framework": "ISO/IEC 27001:2022 Annex A",
+     "control": "A.8.20",
+     "title": "Networks security"
+    }
+   ]
+  },
+  {
+   "id": "NA-SNMP-002",
+   "title": "No default SNMP community string (public/private)",
+   "category": "SNMP",
+   "severity": "critical",
+   "description": "'public' and 'private' are the first strings attackers try; 'private' is typically read-write.",
+   "applies_when": [],
+   "fail_when": [],
+   "check": {
+    "path": "snmp.default_community_in_use",
+    "op": "is_false"
+   },
+   "pass_message": "No default SNMP community string is configured.",
+   "fail_message": "A default SNMP community (public/private) is configured.",
+   "remediation": {
+    "generic": "Remove default communities.",
+    "cisco_ios": "no snmp-server community public\nno snmp-server community private",
+    "juniper_junos": "delete snmp community public\ndelete snmp community private"
+   },
+   "references": [
+    {
+     "framework": "NIST SP 800-53 Rev. 5",
+     "control": "IA-5",
+     "title": "Authenticator Management"
+    },
+    {
+     "framework": "NIST SP 800-53 Rev. 5",
+     "control": "CM-6",
+     "title": "Configuration Settings"
+    },
+    {
+     "framework": "CIS Controls v8",
+     "control": "5.2",
+     "title": "Use Unique Passwords"
+    },
+    {
+     "framework": "ISO/IEC 27001:2022 Annex A",
+     "control": "A.8.9",
+     "title": "Configuration management"
+    }
+   ]
+  },
+  {
+   "id": "NA-SNMP-003",
+   "title": "SNMPv3 uses authentication and privacy (authPriv)",
+   "category": "SNMP",
+   "severity": "medium",
+   "description": "SNMPv3 without privacy (noAuthNoPriv / authNoPriv) exposes management data or allows spoofing.",
+   "applies_when": [
+    {
+     "path": "snmp.versions",
+     "op": "includes_any",
+     "arg": [
+      "v3"
+     ],
+     "message": "SNMPv3 is not configured."
+    }
+   ],
+   "fail_when": [],
+   "check": {
+    "path": "snmp.v3_min_security_level",
+    "op": "equals",
+    "arg": "authPriv"
+   },
+   "pass_message": "SNMPv3 enforces authentication and encryption.",
+   "fail_message": "SNMPv3 allows a security level below authPriv.",
+   "remediation": {
+    "generic": "Require authPriv for SNMPv3 users/groups.",
+    "cisco_ios": "snmp-server group <grp> v3 priv",
+    "juniper_junos": "set snmp v3 usm local-engine user <user> authentication-sha ...\nset snmp v3 usm local-engine user <user> privacy-aes128 ..."
+   },
+   "references": [
+    {
+     "framework": "NIST SP 800-53 Rev. 5",
+     "control": "SC-8",
+     "title": "Transmission Confidentiality and Integrity"
+    },
+    {
+     "framework": "NIST SP 800-53 Rev. 5",
+     "control": "SC-13",
+     "title": "Cryptographic Protection"
+    },
+    {
+     "framework": "ISO/IEC 27001:2022 Annex A",
+     "control": "A.8.24",
+     "title": "Use of cryptography"
+    }
+   ]
+  }
+ ]
+}

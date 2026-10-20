@@ -11,7 +11,12 @@ Conventions (documented in docs/ARCHITECTURE.md):
 from __future__ import annotations
 
 from enum import Enum
-from typing import Any, Self
+from typing import Any
+try:
+    from typing import Self
+except ImportError:
+    from typing_extensions import Self
+
 
 from pydantic import BaseModel, Field, model_validator
 

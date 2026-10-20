@@ -1,34 +1,47 @@
-import { useState } from "react";
-import HealthBadge from "./components/HealthBadge";
-import ParseResultView from "./components/ParseResultView";
-import UploadForm from "./components/UploadForm";
-import type { ConfigParseResponse } from "./types";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import { AuthProvider, useAuth } from "./auth/AuthContext";
+import Layout from "./components/Layout";
+import { Spinner } from "./components/ui";
+import AIReview from "./pages/AIReview";
+import AuditDetailPage from "./pages/AuditDetail";
+import Compare from "./pages/Compare";
+import Dashboard from "./pages/Dashboard";
+import History from "./pages/History";
+import Login from "./pages/Login";
+import NewAudit from "./pages/NewAudit";
+import Rules from "./pages/Rules";
+import Users from "./pages/Users";
+
+function Protected() {
+  const { user, loading } = useAuth();
+  if (loading) return <Spinner label="Restoring session…" />;
+  return user ? <Layout /> : <Navigate to="/login" replace />;
+}
+
+function AdminOnly({ children }: { children: React.ReactNode }) {
+  const { isAdmin } = useAuth();
+  return isAdmin ? <>{children}</> : <Navigate to="/" replace />;
+}
 
 export default function App() {
-  const [result, setResult] = useState<ConfigParseResponse | null>(null);
-
   return (
-    <div className="min-h-screen">
-      <header className="border-b border-slate-200 bg-white">
-        <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-3 px-4 py-4">
-          <div>
-            <h1 className="text-xl font-bold tracking-tight">Network Security Compliance Auditor</h1>
-            <p className="text-sm text-slate-500">Multi-vendor configuration analysis · Cisco IOS &amp; Juniper Junos</p>
-          </div>
-          <HealthBadge />
-        </div>
-      </header>
-
-      <main className="mx-auto max-w-5xl space-y-6 px-4 py-6">
-        <UploadForm onResult={setResult} />
-        {result ? (
-          <ParseResultView data={result} />
-        ) : (
-          <p className="rounded-xl border border-dashed border-slate-300 p-8 text-center text-sm text-slate-500">
-            No configuration analyzed yet. Upload a file to see extracted settings, evidence and unknowns.
-          </p>
-        )}
-      </main>
-    </div>
+    <BrowserRouter>
+      <AuthProvider>
+        <Routes>
+          <Route path="/login" element={<Login />} />
+          <Route element={<Protected />}>
+            <Route path="/" element={<Dashboard />} />
+            <Route path="/audits/new" element={<NewAudit />} />
+            <Route path="/audits" element={<History />} />
+            <Route path="/audits/compare" element={<Compare />} />
+            <Route path="/audits/:id" element={<AuditDetailPage />} />
+            <Route path="/rules" element={<Rules />} />
+            <Route path="/ai-review" element={<AIReview />} />
+            <Route path="/users" element={<AdminOnly><Users /></AdminOnly>} />
+          </Route>
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </AuthProvider>
+    </BrowserRouter>
   );
 }

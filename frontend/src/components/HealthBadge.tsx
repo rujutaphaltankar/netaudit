@@ -5,22 +5,17 @@ import type { Health } from "../types";
 export default function HealthBadge() {
   const [health, setHealth] = useState<Health | null>(null);
   const [failed, setFailed] = useState(false);
-
   useEffect(() => {
     getHealth().then(setHealth).catch(() => setFailed(true));
   }, []);
 
-  if (failed) {
-    return <span className="rounded-full bg-red-100 px-3 py-1 text-xs font-medium text-red-700">Backend unreachable</span>;
-  }
-  if (!health) {
-    return <span className="rounded-full bg-slate-200 px-3 py-1 text-xs text-slate-600">Checking backend…</span>;
-  }
-  const db = { ok: "database connected", not_configured: "database not configured", unavailable: "database unavailable" }[health.database];
-  const tone = health.database === "unavailable" ? "bg-amber-100 text-amber-800" : "bg-emerald-100 text-emerald-800";
+  const dot = failed || health?.database === "unavailable" ? "bg-[#e5484d]" : health ? "bg-[#3ecf8e]" : "bg-slate-500";
+  const text = failed ? "Backend unreachable" : !health ? "Checking backend…" : `API v${health.version} · DB ${health.database}`;
   return (
-    <span className={`rounded-full px-3 py-1 text-xs font-medium ${tone}`} title={`API v${health.version} · AI: ${health.ai_assistance}`}>
-      Backend online · {db}
-    </span>
+    <div className="text-xs text-white/60" title={health ? `AI assistance: ${health.ai_assistance}` : undefined}>
+      <span className={`mr-2 inline-block size-2 rounded-full ${dot}`} />
+      {text}
+      {health && <div className="mt-0.5 pl-4">AI: {health.ai_assistance === "enabled" ? "enabled" : "rule-based fallback"}</div>}
+    </div>
   );
 }

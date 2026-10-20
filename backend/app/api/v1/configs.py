@@ -1,11 +1,13 @@
 from fastapi import APIRouter, Depends, File, Form, UploadFile
 
+from app.api.deps import get_current_user
+from app.api.uploads import read_validated_upload
+
 from app.core.config import Settings, get_settings
 from app.parsers.registry import VENDOR_DISPLAY_NAMES, get_parser
 from app.schemas.api import ConfigParseResponse, ErrorResponse, VendorInfo
 from app.schemas.normalized import Vendor
 from app.services.config_pipeline import analyze_config
-from app.services.upload_validation import validate_upload
 
 router = APIRouter(tags=["configs"])
 
@@ -30,14 +32,11 @@ async def parse_config(
     vendor: str = Form("auto", description="'auto' or a vendor id such as cisco_ios / juniper_junos."),
     force_vendor: bool = Form(False, description="Parse as the selected vendor even if detection disagrees."),
     settings: Settings = Depends(get_settings),
+    _user=Depends(get_current_user),
 ) -> ConfigParseResponse:
     """Validate, detect/confirm the vendor, parse and normalize a configuration file.
 
-    Phase 2/3 endpoint: nothing is persisted; the upload is held in memory only.
+    Stateless preview: nothing is persisted; the upload is held in memory only. Requires login.
     """
-    try:
-        data = await file.read(settings.max_upload_bytes + 1)
-    finally:
-        await file.close()
-    upload = validate_upload(file.filename, data, settings)
+    upload = await read_validated_upload(file, settings)
     return analyze_config(upload, vendor.strip().lower() or "auto", force_vendor)

@@ -13,7 +13,7 @@ router = APIRouter(tags=["health"])
 def health(settings: Settings = Depends(get_settings)) -> HealthResponse:
     return HealthResponse(
         app=settings.app_name, version=settings.app_version, environment=settings.environment,
-        database=check_database(settings.database_url),  # type: ignore[arg-type]
+        database=check_database(settings.effective_database_url),  # type: ignore[arg-type]
         ai_assistance="enabled" if settings.ai_enabled else "fallback_only",
         time=datetime.now(timezone.utc),
     )

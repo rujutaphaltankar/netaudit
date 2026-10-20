@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import logging
+from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -10,6 +11,7 @@ from fastapi.responses import JSONResponse
 from app.api.v1.router import api_router
 from app.core.config import get_settings
 from app.core.errors import AppError
+from app.services.bootstrap import startup
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
 log = logging.getLogger("netaudit")
@@ -19,9 +21,15 @@ def _error(status: int, code: str, message: str, details: dict | None = None) ->
     return JSONResponse(status_code=status, content={"error": {"code": code, "message": message, "details": details or {}}})
 
 
+@asynccontextmanager
+async def lifespan(_: FastAPI):
+    startup(get_settings())
+    yield
+
+
 def create_app() -> FastAPI:
     settings = get_settings()
-    app = FastAPI(title=settings.app_name, version=settings.app_version,
+    app = FastAPI(title=settings.app_name, version=settings.app_version, lifespan=lifespan,
                   description="Multi-vendor network configuration security compliance auditor.")
 
     app.add_middleware(
