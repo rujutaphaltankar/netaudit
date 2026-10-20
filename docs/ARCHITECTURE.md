@@ -52,3 +52,10 @@ but must never PASS on either.
 - **Cisco IOS**: indentation-based block tree; banners skipped; last-wins for flag commands.
 - **Junos**: `set` and hierarchical formats flattened to token paths; `inactive:`/`deactivate`/`delete` honoured; `groups` not evaluated (warned).
 - Unknown commands = unconsumed lines under security-relevant roots, minus a small benign list (input for Phase 5).
+
+---
+## Update: final architecture (all phases)
+`Upload → validation → vendor detection → parser → NormalizedConfig (known/unknown + redacted evidence) → rule engine (catalog.json, tri-state operators) → score/grade → DB (audits, findings) → API → React UI / PDF`.
+- **Rule engine** (`backend/app/rules`): declarative rules (`path`, `op`, `arg`, `applies_when`, `fail_when`); an UNKNOWN setting always yields UNKNOWN.
+- **AI mapping** (`services/ai_mapping.py`): optional, advisory, schema-validated, human-approved, with a heuristic fallback.
+- **Auth** (`core/security.py`, `api/deps.py`): JWT + admin/viewer roles. **DB**: SQLAlchemy + Alembic (SQLite/PostgreSQL).

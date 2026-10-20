@@ -13,9 +13,9 @@ def error_code(resp):
 
 
 # ----------------------------------------------------------------------------- health / vendors
-def test_health_without_database(client):
-    body = client.get("/api/v1/health").json()
-    assert body["status"] == "ok" and body["database"] == "not_configured"
+def test_health_is_public_and_reports_database(anon_client):
+    body = anon_client.get("/api/v1/health").json()
+    assert body["status"] == "ok" and body["database"] == "ok"
     assert body["ai_assistance"] == "fallback_only"
 
 
@@ -78,14 +78,10 @@ def test_empty_file(client):
     assert r.status_code == 400 and error_code(r) == "empty_file"
 
 
-def test_file_too_large():
-    s = Settings(_env_file=None, max_upload_bytes=100)
-    app.dependency_overrides[get_settings] = lambda: s
-    try:
-        r = upload(TestClient(app), "a.cfg", b"hostname R1\n" * 50)
-        assert r.status_code == 413 and error_code(r) == "file_too_large"
-    finally:
-        app.dependency_overrides.clear()
+def test_file_too_large(client, settings):
+    settings.max_upload_bytes = 100
+    r = upload(client, "a.cfg", b"hostname R1\n" * 50)
+    assert r.status_code == 413 and error_code(r) == "file_too_large"
 
 
 def test_bad_extension_and_binary(client):
