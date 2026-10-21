@@ -3,8 +3,6 @@ import { Navigate, useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
 import { Button, ErrorNote, fieldCls } from "../components/ui";
 
-const SHOW_HINT = import.meta.env.VITE_SHOW_DEMO_HINT === "true";
-
 export default function Login() {
   const { user, signIn } = useAuth();
   const navigate = useNavigate();
@@ -20,6 +18,25 @@ export default function Login() {
     setError(null);
     try {
       await signIn(username, password);
+      navigate("/", { replace: true });
+    } catch (err) {
+      setError(err);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function quickLogin(role: "admin" | "viewer") {
+    const creds = role === "admin"
+      ? { u: "admin", p: "Admin@12345" }
+      : { u: "viewer", p: "Viewer@12345" };
+
+    setUsername(creds.u);
+    setPassword(creds.p);
+    setBusy(true);
+    setError(null);
+    try {
+      await signIn(creds.u, creds.p);
       navigate("/", { replace: true });
     } catch (err) {
       setError(err);
@@ -64,12 +81,39 @@ export default function Login() {
             <input className={`${fieldCls} mt-1`} type="password" value={password} onChange={(e) => setPassword(e.target.value)} autoComplete="current-password" required maxLength={128} />
           </label>
           <ErrorNote error={error} />
-          <Button variant="primary" type="submit" disabled={busy} className="w-full">{busy ? "Signing in…" : "Sign in"}</Button>
-          {SHOW_HINT && (
-            <p className="rounded-md bg-signal-wash p-3 text-xs text-signal-dark">
-              Demo accounts: <b>admin</b> / Admin@12345 (full access) and <b>viewer</b> / Viewer@12345 (read-only).
-            </p>
-          )}
+          <Button variant="primary" type="submit" disabled={busy} className="w-full">
+            {busy ? "Signing in…" : "Sign in"}
+          </Button>
+
+          <div className="relative my-4 flex items-center justify-center">
+            <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-line" /></div>
+            <span className="relative bg-paper px-3 text-xs uppercase tracking-wider text-muted">Or 1-click Demo Login</span>
+          </div>
+
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              disabled={busy}
+              onClick={() => quickLogin("admin")}
+              className="flex flex-col items-center justify-center rounded-lg border border-signal/40 bg-signal-wash/60 p-2.5 text-center transition hover:bg-signal-wash hover:border-signal disabled:opacity-50"
+            >
+              <span className="text-xs font-semibold text-signal-dark">⚡ Demo Admin</span>
+              <span className="text-[11px] text-muted">Full access (audit, users)</span>
+            </button>
+            <button
+              type="button"
+              disabled={busy}
+              onClick={() => quickLogin("viewer")}
+              className="flex flex-col items-center justify-center rounded-lg border border-line bg-mist/60 p-2.5 text-center transition hover:bg-mist hover:border-slate-400 disabled:opacity-50"
+            >
+              <span className="text-xs font-semibold text-ink">⚡ Demo Viewer</span>
+              <span className="text-[11px] text-muted">Read-only (review findings)</span>
+            </button>
+          </div>
+
+          <p className="rounded-md bg-mist/70 p-2.5 text-center text-xs text-muted">
+            Demo credentials: <span className="font-mono text-ink">admin / Admin@12345</span> · <span className="font-mono text-ink">viewer / Viewer@12345</span>
+          </p>
         </form>
       </section>
     </div>
