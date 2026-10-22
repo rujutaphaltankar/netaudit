@@ -8,6 +8,7 @@ import ParsedConfig from "../components/ParsedConfig";
 import ScoreRing from "../components/ScoreRing";
 import SeverityBar from "../components/SeverityBar";
 import { Button, Card, Chip, Empty, ErrorNote, PageHeader, Spinner, inputCls, useAsync } from "../components/ui";
+import { useToast } from "../context/ToastContext";
 import { countByStatus, filterFindings, type FindingFilter } from "../lib/findings";
 import { SEVERITIES, STATUS_LABEL, cn, formatDate, vendorLabel } from "../lib/ui";
 import type { AuditDetail, FindingStatus, GenerateResult } from "../types";
@@ -123,6 +124,7 @@ export default function AuditDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { isAdmin } = useAuth();
+  const toast = useToast();
   const auditId = Number(id);
   const { data: audit, error, loading, reload } = useAsync(() => getAudit(auditId), [auditId]);
   const [tab, setTab] = useState<Tab>("findings");
@@ -134,11 +136,27 @@ export default function AuditDetailPage() {
 
   async function pdf() {
     setBusy(true); setActionError(null);
-    try { await downloadReport(audit!.id); } catch (e) { setActionError(e); } finally { setBusy(false); }
+    toast.info("Generating PDF audit report...");
+    try {
+      await downloadReport(audit!.id);
+      toast.success("PDF report downloaded successfully");
+    } catch (e) {
+      setActionError(e);
+      toast.error("Failed to generate PDF report");
+    } finally {
+      setBusy(false);
+    }
   }
   async function remove() {
     if (!window.confirm(`Delete audit #${audit!.id} (${audit!.filename})? This cannot be undone.`)) return;
-    try { await deleteAudit(audit!.id); navigate("/audits"); } catch (e) { setActionError(e); }
+    try {
+      await deleteAudit(audit!.id);
+      toast.success("Audit deleted successfully");
+      navigate("/audits");
+    } catch (e) {
+      setActionError(e);
+      toast.error("Failed to delete audit");
+    }
   }
 
   const sevTotal = SEVERITIES.reduce((n, s) => n + (audit.failed_by_severity[s] ?? 0), 0);
