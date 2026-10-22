@@ -59,3 +59,8 @@ but must never PASS on either.
 - **Rule engine** (`backend/app/rules`): declarative rules (`path`, `op`, `arg`, `applies_when`, `fail_when`); an UNKNOWN setting always yields UNKNOWN.
 - **AI mapping** (`services/ai_mapping.py`): optional, advisory, schema-validated, human-approved, with a heuristic fallback.
 - **Auth** (`core/security.py`, `api/deps.py`): JWT + admin/viewer roles. **DB**: SQLAlchemy + Alembic (SQLite/PostgreSQL).
+- **Frontend architecture**:
+  - `ErrorBoundary`: Global defensive boundary preventing entire UI unmount on localized runtime rendering errors.
+  - `ToastProvider`: Unified, accessible (ARIA live) notification queue for async user actions (PDF export, AI mappings, clipboard copy).
+  - Component hierarchy: `App` -> `ErrorBoundary` -> `ToastProvider` -> `Layout` -> `Dashboard` / `AuditDetail` / `Compare` / `History`.
+
