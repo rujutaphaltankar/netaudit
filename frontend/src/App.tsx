@@ -1,5 +1,6 @@
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { AuthProvider, useAuth } from "./auth/AuthContext";
+import ErrorBoundary from "./components/ErrorBoundary";
 import Layout from "./components/Layout";
 import { Spinner } from "./components/ui";
 import { ToastProvider } from "./context/ToastContext";
@@ -26,26 +27,28 @@ function AdminOnly({ children }: { children: React.ReactNode }) {
 
 export default function App() {
   return (
-    <BrowserRouter>
-      <AuthProvider>
-        <ToastProvider>
-          <Routes>
-            <Route path="/login" element={<Login />} />
-            <Route element={<Protected />}>
-              <Route path="/" element={<Dashboard />} />
-              <Route path="/audits/new" element={<NewAudit />} />
-              <Route path="/audits" element={<History />} />
-              <Route path="/audits/compare" element={<Compare />} />
-              <Route path="/audits/:id" element={<AuditDetailPage />} />
-              <Route path="/rules" element={<Rules />} />
-              <Route path="/ai-review" element={<AIReview />} />
-              <Route path="/users" element={<AdminOnly><Users /></AdminOnly>} />
-            </Route>
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-        </ToastProvider>
-      </AuthProvider>
-    </BrowserRouter>
+    <ErrorBoundary>
+      <BrowserRouter>
+        <AuthProvider>
+          <ToastProvider>
+            <Routes>
+              <Route path="/login" element={<Login />} />
+              <Route element={<Protected />}>
+                <Route path="/" element={<Dashboard />} />
+                <Route path="/audits/new" element={<NewAudit />} />
+                <Route path="/audits" element={<History />} />
+                <Route path="/audits/compare" element={<Compare />} />
+                <Route path="/audits/:id" element={<AuditDetailPage />} />
+                <Route path="/rules" element={<Rules />} />
+                <Route path="/ai-review" element={<AIReview />} />
+                <Route path="/users" element={<AdminOnly><Users /></AdminOnly>} />
+              </Route>
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </ToastProvider>
+        </AuthProvider>
+      </BrowserRouter>
+    </ErrorBoundary>
   );
 }
 
