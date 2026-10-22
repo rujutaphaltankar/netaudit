@@ -25,25 +25,44 @@ function Stat({ label, value, tone }: { label: string; value: number; tone: stri
 
 function FindingsTab({ audit }: { audit: AuditDetail }) {
   const [filter, setFilter] = useState<FindingFilter>({ status: "all", severity: "all", q: "" });
+  const [expandAll, setExpandAll] = useState<boolean | undefined>(undefined);
   const counts = useMemo(() => countByStatus(audit.findings), [audit.findings]);
   const shown = useMemo(() => filterFindings(audit.findings, filter), [audit.findings, filter]);
   const statuses: (FindingStatus | "all")[] = ["all", "fail", "unknown", "pass", "not_applicable"];
+  const isFiltered = filter.status !== "all" || filter.severity !== "all" || filter.q !== "";
+
   return (
     <div>
-      <div className="mb-4 flex flex-wrap items-center gap-2">
-        {statuses.map((s) => (
-          <button key={s} onClick={() => setFilter({ ...filter, status: s })} aria-pressed={filter.status === s}
-            className={cn("rounded-full border px-3 py-1 text-sm", filter.status === s ? "border-ink bg-ink text-white" : "border-line bg-paper text-ink hover:bg-mist")}>
-            {s === "all" ? "All" : STATUS_LABEL[s]} <span className="opacity-70">{counts[s]}</span>
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          {statuses.map((s) => (
+            <button key={s} onClick={() => setFilter({ ...filter, status: s })} aria-pressed={filter.status === s}
+              className={cn("rounded-full border px-3 py-1 text-xs font-medium transition-colors", filter.status === s ? "border-ink bg-ink text-white shadow-sm" : "border-line bg-paper text-ink hover:bg-mist")}>
+              {s === "all" ? "All" : STATUS_LABEL[s]} <span className="opacity-70 ml-1">{counts[s]}</span>
+            </button>
+          ))}
+          <select aria-label="Severity" className={cn(inputCls, "w-auto text-xs py-1")} value={filter.severity} onChange={(e) => setFilter({ ...filter, severity: e.target.value as FindingFilter["severity"] })}>
+            <option value="all">Any severity</option>
+            {SEVERITIES.map((s) => <option key={s} value={s}>{s}</option>)}
+          </select>
+          <input aria-label="Search findings" className={cn(inputCls, "w-44 text-xs py-1")} placeholder="Search title or ID..." value={filter.q} onChange={(e) => setFilter({ ...filter, q: e.target.value })} />
+          {isFiltered && (
+            <button onClick={() => setFilter({ status: "all", severity: "all", q: "" })} className="text-xs text-signal underline hover:text-signal-dark">
+              Reset filters
+            </button>
+          )}
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setExpandAll((v) => (v === true ? false : true))}
+            className="rounded border border-line bg-paper px-2.5 py-1 text-xs font-medium text-muted hover:bg-mist hover:text-ink transition-colors"
+          >
+            {expandAll === true ? "Collapse all" : "Expand all"}
           </button>
-        ))}
-        <select aria-label="Severity" className={cn(inputCls, "w-auto")} value={filter.severity} onChange={(e) => setFilter({ ...filter, severity: e.target.value as FindingFilter["severity"] })}>
-          <option value="all">Any severity</option>
-          {SEVERITIES.map((s) => <option key={s} value={s}>{s}</option>)}
-        </select>
-        <input aria-label="Search findings" className={cn(inputCls, "w-48")} placeholder="Search findings" value={filter.q} onChange={(e) => setFilter({ ...filter, q: e.target.value })} />
+        </div>
       </div>
-      {shown.length === 0 ? <Empty>No findings match these filters.</Empty> : <div className="space-y-2.5">{shown.map((f) => <FindingCard key={f.id} f={f} />)}</div>}
+      {shown.length === 0 ? <Empty>No findings match these filters.</Empty> : <div className="space-y-2.5">{shown.map((f) => <FindingCard key={`${f.id}-${expandAll}`} f={f} forceOpen={expandAll} />)}</div>}
       <p className="mt-4 text-xs text-muted">
         “Unverified” means the file did not provide enough evidence to decide. It is excluded from the score and never counted as compliant. Rule catalog v{audit.catalog_version}.
       </p>
